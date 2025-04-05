@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shift Change Time Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            max-width: 500px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .time-input {
+            width: 60px;
+            text-align: center;
+            font-size: 1.2rem;
+            border: none;
+            border-bottom: 2px solid #3b82f6;
+            background-color: transparent;
+            margin: 0 5px;
+        }
+        
+        .time-input:focus {
+            outline: none;
+            border-bottom-color: #1d4ed8;
+        }
+        
+        .operation-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .operation-btn.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .result-box {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        #partsInput {
+            width: 80px;
+            text-align: center;
+            font-size: 1.2rem;
+            border: none;
+            border-bottom: 2px solid #3b82f6;
+            background-color: transparent;
+            margin: 0 5px;
+        }
+        
+        #partsInput:focus {
+            outline: none;
+            border-bottom-color: #1d4ed8;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding: 1rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+            border-top: 1px solid #e5e7eb;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-blue-500 text-white p-4 shadow-md">
+        <div class="flex items-center justify-between">
+            <h1 class="text-xl font-bold">Shift Change Time Calculator</h1>
+            <button id="historyBtn" class="p-2 rounded-full hover:bg-blue-600">
+                <i class="fas fa-history"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-4">
+            <h2 class="text-lg font-semibold mb-4 text-gray-700">Initial Time (24Hr)</h2>
+            <div class="flex items-center justify-center mb-2">
+                <input type="number" id="hour2" class="time-input" min="0" max="23" placeholder="00">
+                <span class="text-gray-600 mx-1">:</span>
+                <input type="number" id="minute2" class="time-input" min="0" max="59" placeholder="00">
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-4">
+            <h2 class="text-lg font-semibold mb-4 text-gray-700">Final Time (24Hr)</h2>
+            <div class="flex items-center justify-center mb-2">
+                <input type="number" id="hour1" class="time-input" min="0" max="23" placeholder="00">
+                <span class="text-gray-600 mx-1">:</span>
+                <input type="number" id="minute1" class="time-input" min="0" max="59" placeholder="00">
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-4">
+            <h2 class="text-lg font-semibold mb-4 text-gray-700">Operation</h2>
+            <div class="flex justify-center space-x-4">
+                <button id="divideBtn" class="operation-btn active px-6 py-2 rounded-full border border-blue-500 text-blue-500 font-medium">
+                    <i class="fas fa-divide mr-2"></i> Divide
+                </button>
+                <button id="subtractBtn" class="operation-btn px-6 py-2 rounded-full border border-blue-500 text-blue-500 font-medium">
+                    <i class="fas fa-minus mr-2"></i> Subtract
+                </button>
+            </div>
+            
+            <div id="divideOptions" class="mt-4 text-center">
+                <label for="partsInput" class="block text-sm text-gray-600 mb-1">Number of parts:</label>
+                <input type="number" id="partsInput" min="1" max="100" value="2" placeholder="2">
+            </div>
+        </div>
+
+        <div class="flex justify-center mt-6">
+            <button id="calculateBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-transform">
+                Calculate <i class="fas fa-calculator ml-2"></i>
+            </button>
+        </div>
+
+        <div id="resultContainer" class="mt-8 hidden">
+            <div class="result-box bg-white rounded-lg p-6 shadow-lg border-l-4 border-blue-500">
+                <h3 class="text-lg font-semibold mb-2 text-gray-700">Result</h3>
+                <div id="result" class="text-3xl font-bold text-blue-600 text-center py-4">00:00</div>
+                <div id="dividedResults" class="space-y-2 mb-4 hidden"></div>
+                <div class="flex justify-between text-sm text-gray-500">
+                    <span id="operationType">Division</span>
+                    <span id="calculationTime"></span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="copyright">
+        All rights are exclusively reserved by Hadi Alizadeh
+    </footer>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="text-lg font-semibold">Calculation History</h3>
+                <button id="closeHistory" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="historyList" class="overflow-y-auto max-h-[60vh] p-2">
+                <!-- History items will be added here -->
+                <div class="text-center py-4 text-gray-500">No history yet</div>
+            </div>
+            <div class="p-3 border-t flex justify-between">
+                <button id="clearHistory" class="text-red-500 hover:text-red-700 text-sm">
+                    <i class="fas fa-trash mr-1"></i> Clear History
+                </button>
+                <span id="historyCount" class="text-sm text-gray-500">0 items</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const hour1Input = document.getElementById('hour1');
+            const minute1Input = document.getElementById('minute1');
+            const hour2Input = document.getElementById('hour2');
+            const minute2Input = document.getElementById('minute2');
+            const divideBtn = document.getElementById('divideBtn');
+            const subtractBtn = document.getElementById('subtractBtn');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultElement = document.getElementById('result');
+            const dividedResultsElement = document.getElementById('dividedResults');
+            const operationTypeElement = document.getElementById('operationType');
+            const calculationTimeElement = document.getElementById('calculationTime');
+            const historyBtn = document.getElementById('historyBtn');
+            const historyModal = document.getElementById('historyModal');
+            const closeHistory = document.getElementById('closeHistory');
+            const historyList = document.getElementById('historyList');
+            const clearHistory = document.getElementById('clearHistory');
+            const historyCount = document.getElementById('historyCount');
+            const partsInput = document.getElementById('partsInput');
+            const divideOptions = document.getElementById('divideOptions');
+            
+            // State
+            let isDivision = true;
+            let history = JSON.parse(localStorage.getItem('timeCalculatorHistory')) || [];
+            
+            // Initialize
+            updateHistoryDisplay();
+            
+            // Event Listeners
+            divideBtn.addEventListener('click', () => {
+                isDivision = true;
+                divideBtn.classList.add('active', 'bg-blue-500', 'text-white');
+                subtractBtn.classList.remove('active', 'bg-blue-500', 'text-white');
+                operationTypeElement.textContent = 'Division';
+                divideOptions.classList.remove('hidden');
+            });
+            
+            subtractBtn.addEventListener('click', () => {
+                isDivision = false;
+                subtractBtn.classList.add('active', 'bg-blue-500', 'text-white');
+                divideBtn.classList.remove('active', 'bg-blue-500', 'text-white');
+                operationTypeElement.textContent = 'Subtraction';
+                divideOptions.classList.add('hidden');
+            });
+            
+            calculateBtn.addEventListener('click', calculateTime);
+            
+            // Input validation
+            [hour1Input, minute1Input, hour2Input, minute2Input, partsInput].forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value.length > 3) {
+                        this.value = this.value.slice(0, 3);
+                    }
+                    
+                    // Validate hours (0-23)
+                    if (this.id.includes('hour') && parseInt(this.value) > 23) {
+                        this.value = '23';
+                    }
+                    
+                    // Validate minutes (0-59)
+                    if (this.id.includes('minute') && parseInt(this.value) > 59) {
+                        this.value = '59';
+                    }
+                    
+                    // Validate parts (1-100)
+                    if (this.id === 'partsInput') {
+                        if (parseInt(this.value) > 100) {
+                            this.value = '100';
+                        }
+                        if (parseInt(this.value) < 1) {
+                            this.value = '1';
+                        }
+                    }
+                    
+                    // Prevent negative numbers
+                    if (parseInt(this.value) < 0) {
+                        this.value = '0';
+                    }
+                });
+            });
+            
+            // History functionality
+            historyBtn.addEventListener('click', () => {
+                historyModal.classList.remove('hidden');
+            });
+            
+            closeHistory.addEventListener('click', () => {
+                historyModal.classList.add('hidden');
+            });
+            
+            clearHistory.addEventListener('click', () => {
+                history = [];
+                localStorage.setItem('timeCalculatorHistory', JSON.stringify(history));
+                updateHistoryDisplay();
+            });
+            
+            // Close modal when clicking outside
+            historyModal.addEventListener('click', (e) => {
+                if (e.target === historyModal) {
+                    historyModal.classList.add('hidden');
+                }
+            });
+            
+            // Functions
+            function calculateTime() {
+                // Get input values
+                const hour1 = parseInt(hour1Input.value) || 0;
+                const minute1 = parseInt(minute1Input.value) || 0;
+                const hour2 = parseInt(hour2Input.value) || 0;
+                const minute2 = parseInt(minute2Input.value) || 0;
+                const parts = parseInt(partsInput.value) || 2;
+                
+                // Convert to total minutes
+                const totalMinutes1 = hour1 * 60 + minute1;
+                const totalMinutes2 = hour2 * 60 + minute2;
+                
+                let resultMinutes;
+                let operationSymbol;
+                let results = [];
+                
+                if (isDivision) {
+                    // Calculate the time difference first
+                    let diffMinutes = totalMinutes1 - totalMinutes2;
+                    
+                    // Handle negative results (crossing midnight)
+                    if (diffMinutes < 0) {
+                        diffMinutes += 24 * 60; // Add a day's worth of minutes
+                    }
+                    
+                    // Divide the time difference into equal parts
+                    const partMinutes = diffMinutes / parts;
+                    
+                    // Generate each divided time segment
+                    for (let i = 1; i <= parts; i++) {
+                        const segmentMinutes = totalMinutes2 + (partMinutes * i);
+                        let segmentHours = Math.floor(segmentMinutes / 60) % 24;
+                        let segmentMins = Math.floor(segmentMinutes % 60);
+                        
+                        // Format with leading zeros
+                        const formattedHours = segmentHours.toString().padStart(2, '0');
+                        const formattedMinutes = segmentMins.toString().padStart(2, '0');
+                        
+                        results.push({
+                            label: `Change Time ${i}`,
+                            time: `${formattedHours}:${formattedMinutes}`
+                        });
+                    }
+                    
+                    // The final result is the last segment
+                    resultMinutes = totalMinutes2 + diffMinutes;
+                    operationSymbol = '÷';
+                } else {
+                    // Subtraction logic remains the same
+                    resultMinutes = totalMinutes1 - totalMinutes2;
+                    operationSymbol = '-';
+                    
+                    // Handle negative results
+                    if (resultMinutes < 0) {
+                        resultMinutes += 24 * 60; // Add a day's worth of minutes
+                    }
+                }
+                
+                // Convert back to hours and minutes
+                let resultHours = Math.floor(resultMinutes / 60) % 24;
+                resultMinutes = resultMinutes % 60;
+                
+                // Format with leading zeros
+                const formattedHours = resultHours.toString().padStart(2, '0');
+                const formattedMinutes = resultMinutes.toString().padStart(2, '0');
+                
+                // Display result
+                if (isDivision) {
+                    resultElement.textContent = `${formattedHours}:${formattedMinutes}`;
+                    
+                    // Display divided results
+                    dividedResultsElement.innerHTML = '';
+                    dividedResultsElement.classList.remove('hidden');
+                    
+                    results.forEach(result => {
+                        const div = document.createElement('div');
+                        div.className = 'flex justify-between items-center bg-gray-50 p-2 rounded';
+                        div.innerHTML = `
+                            <span class="text-gray-600">${result.label}:</span>
+                            <span class="font-medium">${result.time}</span>
+                        `;
+                        dividedResultsElement.appendChild(div);
+                    });
+                } else {
+                    resultElement.textContent = `${formattedHours}:${formattedMinutes}`;
+                    dividedResultsElement.classList.add('hidden');
+                }
+                
+                resultContainer.classList.remove('hidden');
+                
+                // Save to history
+                const now = new Date();
+                const calculation = {
+                    time1: `${hour1.toString().padStart(2, '0')}:${minute1.toString().padStart(2, '0')}`,
+                    time2: `${hour2.toString().padStart(2, '0')}:${minute2.toString().padStart(2, '0')}`,
+                    operation: operationSymbol,
+                    result: `${formattedHours}:${formattedMinutes}`,
+                    parts: isDivision ? parts : null,
+                    results: isDivision ? results : null,
+                    timestamp: now.toISOString()
+                };
+                
+                history.unshift(calculation); // Add to beginning of array
+                if (history.length > 10) {
+                    history.pop(); // Keep only last 10 items
+                }
+                
+                localStorage.setItem('timeCalculatorHistory', JSON.stringify(history));
+                updateHistoryDisplay();
+                
+                // Update calculation time
+                calculationTimeElement.textContent = now.toLocaleTimeString();
+            }
+            
+            function updateHistoryDisplay() {
+                historyList.innerHTML = '';
+                
+                if (history.length === 0) {
+                    historyList.innerHTML = '<div class="text-center py-4 text-gray-500">No history yet</div>';
+                    historyCount.textContent = '0 items';
+                    return;
+                }
+                
+                historyCount.textContent = `${history.length} ${history.length === 1 ? 'item' : 'items'}`;
+                
+                history.forEach((item, index) => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'p-3 border-b hover:bg-gray-50 cursor-pointer';
+                    
+                    let operationDetails = '';
+                    
+                    if (item.operation === '÷') {
+                        operationDetails = `
+                            <div class="text-xs text-gray-500 mt-1">
+                                Divided into ${item.parts} parts
+                            </div>
+                        `;
+                    }
+                    
+                    historyItem.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="font-medium">${item.time1}</span>
+                                <span class="mx-2 text-gray-500">${item.operation}</span>
+                                <span class="font-medium">${item.time2}</span>
+                                <span class="mx-2 text-gray-500">=</span>
+                                <span class="font-bold text-blue-600">${item.result}</span>
+                                ${operationDetails}
+                            </div>
+                            <span class="text-xs text-gray-400">${new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                    `;
+                    
+                    historyItem.addEventListener('click', () => {
+                        // Fill the inputs with this history item
+                        const [h1, m1] = item.time1.split(':');
+                        const [h2, m2] = item.time2.split(':');
+                        
+                        hour1Input.value = h1;
+                        minute1Input.value = m1;
+                        hour2Input.value = h2;
+                        minute2Input.value = m2;
+                        
+                        if (item.operation === '÷') {
+                            divideBtn.click();
+                            partsInput.value = item.parts;
+                        } else {
+                            subtractBtn.click();
+                        }
+                        
+                        historyModal.classList.add('hidden');
+                    });
+                    
+                    historyList.appendChild(historyItem);
+                });
+            }
+        });
+    </script>
+</html>
